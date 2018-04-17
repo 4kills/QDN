@@ -9,6 +9,12 @@ import (
 // Raw byte array in the qdn format. Represents a go struct
 type Raw []byte
 
+// Format puts the raw byte data in a more readable state, using a text editor
+func (r *Raw) Format() error {
+	// not implemented
+	return nil
+}
+
 // Marshal turns the given struct into a raw byte array
 func Marshal(stru interface{}) (Raw, error) {
 	if reflect.TypeOf(stru).Kind() != reflect.Struct {
