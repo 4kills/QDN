@@ -19,7 +19,7 @@ func (r *Raw) Format() error {
 }
 
 // Unmarshal fills a given interface with the corresponding qdn byte data.
-func Unmarshal(stru *interface{}, data []byte) error {
+func Unmarshal(stru interface{}, data []byte) error {
 	if reflect.TypeOf(stru).Kind() != reflect.Struct {
 		return errors.New("qdn.Unmarshal error: Provided parameter is no struct pointer")
 	}
