@@ -20,9 +20,9 @@ func (r *Raw) Format() error {
 
 // Unmarshal fills a given interface with the corresponding qdn byte data.
 func Unmarshal(stru interface{}, data []byte) error {
-	if reflect.Indirect(reflect.ValueOf(stru)).Kind() != reflect.Struct {
-		return errors.New("qdn.Unmarshal error: Provided parameter is no struct pointer")
-	}
+	//if reflect.Indirect(reflect.ValueOf(stru)).Kind() != reflect.Struct {
+	//	return errors.New("qdn.Unmarshal error: Provided parameter is no struct pointer")
+	//}
 
 	if !bytes.ContainsAny(data[:], reflect.TypeOf(stru).Name()) {
 		return errors.New("qdn.Unmarshal error: Missmatch: data does not represent the struct")
