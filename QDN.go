@@ -46,7 +46,6 @@ func fieldValToRaw(val reflect.Value, typ reflect.Type) []byte {
 }
 
 func valToString(val reflect.Value, typ reflect.Type) string {
-	// TODO: Add more types here
 	switch typ.Kind() {
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int8:
 		return strconv.FormatInt(val.Int(), 10)
@@ -56,6 +55,11 @@ func valToString(val reflect.Value, typ reflect.Type) string {
 		return strconv.FormatFloat(val.Float(), byte('f'), -1, 64)
 	case reflect.Bool:
 		return strconv.FormatBool(val.Bool())
+	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint8:
+		return "u" + strconv.FormatUint(val.Uint(), 10)
+	case reflect.Complex128, reflect.Complex64:
+		return strconv.FormatFloat(real(val.Complex()), byte('f'), -1, 64) + ";" +
+			strconv.FormatFloat(imag(val.Complex()), byte('f'), -1, 64)
 	default:
 		return "type not found"
 	}
