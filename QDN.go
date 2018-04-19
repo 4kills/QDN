@@ -24,7 +24,7 @@ func Unmarshal(stru interface{}, data []byte) error {
 		return err
 	}
 
-	count := reflect.TypeOf(stru).NumField()
+	count := reflect.TypeOf(stru).Elem().NumField()
 	if count < 1 {
 		return errors.New("qdn.Unmarshal error: The struct does not contain any fields")
 	}
