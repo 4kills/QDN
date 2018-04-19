@@ -87,6 +87,16 @@ func Marshal(stru interface{}) (Raw, error) {
 	return append(r, byte('>')), nil
 }
 
+func allIndizes(d []byte, b byte) []int {
+	var ins []int
+	for i, v := range d {
+		if v == b {
+			ins = append(ins, i)
+		}
+	}
+	return ins
+}
+
 func strToVal(val reflect.Value, typ reflect.Type, data []byte, at int) (int, error) {
 	i := at + bytes.IndexRune(data[at:], '=')
 	at = i + bytes.IndexRune(data[i:], ',')
