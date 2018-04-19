@@ -3,7 +3,6 @@ package qdn
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -37,9 +36,7 @@ func Unmarshal(stru interface{}, data []byte) error {
 		err error
 	)
 	for i := 0; i < count; i++ {
-		fmt.Println(string(data))
 		if reflect.TypeOf(stru).Elem().Field(i).Type.Kind() == reflect.Struct {
-
 			c := bytes.Count(data[at+1:], []byte{byte('<')})
 			err = Unmarshal(s.Field(i).Addr().Interface(), data[at+1:2+at+allIndizes(data[at+1:], byte('>'))[c-1]])
 			at = at + allIndizes(data[at+1:], byte('>'))[c-1] + 2
@@ -87,6 +84,7 @@ func Marshal(stru interface{}) (Raw, error) {
 	return append(r, byte('>')), nil
 }
 
+// allIndizes gets the indizes i of all occasions of a byte in a byte slice
 func allIndizes(d []byte, b byte) []int {
 	var ins []int
 	for i, v := range d {
@@ -97,6 +95,7 @@ func allIndizes(d []byte, b byte) []int {
 	return ins
 }
 
+// strToVal turns a string(of a raw slice) into the values for the struct
 func strToVal(val reflect.Value, typ reflect.Type, data []byte, at int) (int, error) {
 	i := at + bytes.IndexRune(data[at:], '=')
 	at = i + bytes.IndexRune(data[i:], ',')
@@ -149,12 +148,14 @@ func strToVal(val reflect.Value, typ reflect.Type, data []byte, at int) (int, er
 	return at, nil
 }
 
+// fieldToRaw turns the field name and the value into a raw slice
 func fieldToRaw(val reflect.Value, typ reflect.StructField) []byte {
 	r := append([]byte(typ.Name), byte('='))
 	r = append(r, []byte(valToString(val, typ.Type))...)
 	return append(r, byte(','))
 }
 
+// valToString turns the actual value to a string
 func valToString(val reflect.Value, typ reflect.Type) string {
 	switch typ.Kind() {
 	case reflect.String:
@@ -176,6 +177,8 @@ func valToString(val reflect.Value, typ reflect.Type) string {
 		return "type not found"
 	}
 }
+
+// checks for errors at the beginning of a Unmarshal function
 func unmarshalInitErrors(stru interface{}, data []byte) error {
 	if reflect.TypeOf(stru).Kind() != reflect.Ptr {
 		return errors.New("qdn.Unmarshal error: Provided parameter is no pointer")
@@ -191,6 +194,7 @@ func unmarshalInitErrors(stru interface{}, data []byte) error {
 	return nil
 }
 
+// initially sets up a struct raw slice
 func setupRaw(struName reflect.Type) []byte {
 	return append([]byte(struName.Name()), byte('<'))
 }
