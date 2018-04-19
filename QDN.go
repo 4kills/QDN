@@ -20,12 +20,8 @@ func (r *Raw) Format() error {
 
 // Unmarshal fills a given interface with the corresponding qdn byte data.
 func Unmarshal(stru interface{}, data []byte) error {
-	//if reflect.Indirect(reflect.ValueOf(stru)).Kind() != reflect.Struct {
-	//	return errors.New("qdn.Unmarshal error: Provided parameter is no struct pointer")
-	//}
-
-	if !bytes.ContainsAny(data[:], reflect.TypeOf(stru).Name()) {
-		return errors.New("qdn.Unmarshal error: Missmatch: data does not represent the struct")
+	if err := unmarshalInitErrors(stru, data); err != nil {
+		return err
 	}
 
 	count := reflect.TypeOf(stru).NumField()
@@ -145,7 +141,20 @@ func valToString(val reflect.Value, typ reflect.Type) string {
 		return "type not found"
 	}
 }
+func unmarshalInitErrors(stru interface{}, data []byte) error {
+	if reflect.TypeOf(stru).Kind() != reflect.Ptr {
+		return errors.New("qdn.Unmarshal error: Provided parameter is no pointer")
+	}
 
+	if reflect.ValueOf(stru).IsNil() {
+		return errors.New("qdn.Unmarshal error: Pointer is nil")
+	}
+
+	if !bytes.ContainsAny(data, reflect.TypeOf(stru).Elem().Name()) {
+		return errors.New("qdn.Unmarshal error: Missmatch: data does not represent the struct")
+	}
+	return nil
+}
 func fieldNameToRaw(s string) []byte {
 	return append([]byte(s), byte('='))
 }
