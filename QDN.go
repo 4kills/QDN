@@ -57,6 +57,15 @@ func Marshal(stru interface{}) (Raw, error) {
 	r := make(Raw, 0)
 	r = append(r, setupRaw(reflect.TypeOf(stru))...)
 	for i := 0; i < count; i++ {
+		if reflect.TypeOf(stru).Field(i).Type.Kind() == reflect.Struct {
+			raw, err := Marshal(reflect.ValueOf(stru).Field(i).Interface())
+			if err != nil {
+				return raw, err
+			}
+			r = append(r, raw...)
+			r = append(r, byte(','))
+			continue
+		}
 		r = append(r, fieldToRaw(reflect.ValueOf(stru).Field(i), reflect.TypeOf(stru).Field(i))...)
 	}
 
@@ -64,8 +73,8 @@ func Marshal(stru interface{}) (Raw, error) {
 }
 
 func strToVal(val reflect.Value, typ reflect.Type, data []byte, at int) (int, error) {
-	i := bytes.IndexRune(data[at:], '=')
-	at = bytes.IndexRune(data[at:], ',')
+	i := at + bytes.IndexRune(data[at:], '=')
+	at = i + bytes.IndexRune(data[i:], ',')
 	s := string(data[i+1 : at])
 
 	switch typ.Kind() {
