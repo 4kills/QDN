@@ -57,8 +57,7 @@ func Marshal(stru interface{}) (Raw, error) {
 	r := make(Raw, 0)
 	r = append(r, setupRaw(reflect.TypeOf(stru))...)
 	for i := 0; i < count; i++ {
-		r = append(r, fieldNameToRaw(reflect.TypeOf(stru).Field(i).Name)...)
-		r = append(r, fieldValToRaw(reflect.ValueOf(stru).Field(i), reflect.TypeOf(stru).Field(i).Type)...)
+		r = append(r, fieldToRaw(reflect.ValueOf(stru).Field(i), reflect.TypeOf(stru).Field(i))...)
 	}
 
 	return append(r, byte('>')), nil
@@ -116,8 +115,10 @@ func strToVal(val reflect.Value, typ reflect.Type, data []byte, at int) (int, er
 	return at, nil
 }
 
-func fieldValToRaw(val reflect.Value, typ reflect.Type) []byte {
-	return append([]byte(valToString(val, typ)), byte(','))
+func fieldToRaw(val reflect.Value, typ reflect.StructField) []byte {
+	r := append([]byte(typ.Name), byte('='))
+	r = append(r, []byte(valToString(val, typ.Type))...)
+	return append(r, byte(','))
 }
 
 func valToString(val reflect.Value, typ reflect.Type) string {
@@ -154,9 +155,6 @@ func unmarshalInitErrors(stru interface{}, data []byte) error {
 		return errors.New("qdn.Unmarshal error: Missmatch: data does not represent the struct")
 	}
 	return nil
-}
-func fieldNameToRaw(s string) []byte {
-	return append([]byte(s), byte('='))
 }
 
 func setupRaw(struName reflect.Type) []byte {
