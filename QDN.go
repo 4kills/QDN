@@ -3,6 +3,7 @@ package qdn
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -29,12 +30,26 @@ func Unmarshal(stru interface{}, data []byte) error {
 		return errors.New("qdn.Unmarshal error: The struct does not contain any fields")
 	}
 
+	s := reflect.ValueOf(stru).Elem()
+
 	var (
 		at  int
 		err error
 	)
 	for i := 0; i < count; i++ {
-		at, err = strToVal(reflect.ValueOf(stru).Field(i), reflect.TypeOf(stru).Field(i).Type, data, at)
+		fmt.Println(string(data))
+		if reflect.TypeOf(stru).Elem().Field(i).Type.Kind() == reflect.Struct {
+
+			c := bytes.Count(data[at+1:], []byte{byte('<')})
+			err = Unmarshal(s.Field(i).Addr().Interface(), data[at+1:2+at+allIndizes(data[at+1:], byte('>'))[c-1]])
+			at = at + allIndizes(data[at+1:], byte('>'))[c-1] + 2
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
+		at, err = strToVal(s.Field(i), reflect.TypeOf(stru).Elem().Field(i).Type, data, at)
 		if err != nil {
 			return err
 		}
