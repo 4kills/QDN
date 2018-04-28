@@ -8,14 +8,50 @@ import (
 	"strings"
 )
 
-// Raw byte array in the qdn format. Represents a go struct
-type Raw []byte
-
-// Format puts the raw byte data in a more readable state, for use in a text editor.
+// Format puts the raw byte data in a more readable state for use in a text editor.
 // Keep in mind that this uses system resources, so its not adviseable to use for network transmission
-func (r *Raw) Format() error {
-	// not implemented
-	return nil
+func Format(r []byte) ([]byte, error) {
+	var formatted []byte
+	var tabC int
+	const tab byte = byte('\t')
+	const nl byte = byte('\n')
+
+	for i := 0; i < len(r); i++ {
+		if r[i] == nl || r[i] == tab {
+			return r, errors.New("Bytes were already formatted")
+		}
+
+		if r[i] == byte('<') {
+			formatted = append(formatted, nl)
+			formatted = append(formatted, createTabS(tabC)...)
+			formatted = append(formatted, r[i], nl)
+			tabC++
+			formatted = append(formatted, createTabS(tabC)...)
+			continue
+		}
+		if r[i] == byte('>') {
+			formatted = append(formatted[:len(formatted)-1], r[i])
+			tabC--
+			continue
+		}
+
+		if r[i] == byte(',') {
+			formatted = append(formatted, r[i], nl)
+			formatted = append(formatted, createTabS(tabC)...)
+			continue
+		}
+
+		formatted = append(formatted, r[i])
+	}
+	return formatted, nil
+}
+
+func createTabS(tabC int) []byte {
+	var tabS []byte
+	for j := 0; j < tabC; j++ {
+		tabS = append(tabS, byte('\t'))
+	}
+	return tabS
 }
 
 // Unmarshal fills a given interface with the corresponding qdn byte data.
@@ -39,7 +75,7 @@ func Unmarshal(stru interface{}, data []byte) error {
 		if reflect.TypeOf(stru).Elem().Field(i).Type.Kind() == reflect.Struct {
 			c := bytes.Count(data[at+1:], []byte{byte('<')})
 			err = Unmarshal(s.Field(i).Addr().Interface(), data[at+1:2+at+allIndizes(data[at+1:], byte('>'))[c-1]])
-			at = at + allIndizes(data[at+1:], byte('>'))[c-1] + 2
+			at += allIndizes(data[at+1:], byte('>'))[c-1] + 2
 			if err != nil {
 				return err
 			}
@@ -56,17 +92,17 @@ func Unmarshal(stru interface{}, data []byte) error {
 }
 
 // Marshal turns the given struct into a raw byte array
-func Marshal(stru interface{}) (Raw, error) {
+func Marshal(stru interface{}) ([]byte, error) {
 	if reflect.TypeOf(stru).Kind() != reflect.Struct {
-		return Raw{}, errors.New("qdn.Marshal error: Provided parameter is no struct")
+		return []byte{}, errors.New("qdn.Marshal error: Provided parameter is no struct")
 	}
 
 	count := reflect.TypeOf(stru).NumField()
 	if count < 1 {
-		return Raw{}, errors.New("qdn.Marshal error: The struct does not contain any fields")
+		return []byte{}, errors.New("qdn.Marshal error: The struct does not contain any fields")
 	}
 
-	r := make(Raw, 0)
+	r := make([]byte, 0)
 	r = append(r, setupRaw(reflect.TypeOf(stru))...)
 	for i := 0; i < count; i++ {
 		if reflect.TypeOf(stru).Field(i).Type.Kind() == reflect.Struct {
