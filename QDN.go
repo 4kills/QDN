@@ -8,8 +8,9 @@ import (
 	"strings"
 )
 
-// Format puts the raw byte data in a more readable state for use in a text editor.
-// Keep in mind that this uses system resources, so its not adviseable to use for network transmission
+// Format returns the raw byte data in a more readable state for use in a text editor.
+// Keep in mind that this uses considerable amounts of system resources,
+// so its not adviseable for plain network transmissions
 func Format(r []byte) ([]byte, error) {
 	var formatted []byte
 	var tabC int
